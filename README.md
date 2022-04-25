@@ -3,10 +3,10 @@ Best Environment Settings in Java, Android Studio.
 
 
 ### Class Düzeni
-![](https://github.com/hkkcngz/javaforbigapps/blob/main/largeproject.jpg?raw=true)
+![](https://raw.githubusercontent.com/hkkcngz/buildgradle/main/largeproject.jpg?raw=true)
 
 ### Oluşacak Source Düzeni
-![](https://github.com/hkkcngz/javaforbigapps/blob/main/largeprojectsrc.jpg?raw=true)
+![](https://raw.githubusercontent.com/hkkcngz/buildgradle/main/largeprojectsrc.jpg?raw=true)
 
 
 ####  all in one. one project to rule them all.
