@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Alias Generator</title>
+</head>
+<body>
+    <h2>Dependency Alias Generator</h2>
+    <textarea id="dependencyInput" rows="10" cols="50" placeholder="Her satıra bir bağımlılık girin..."></textarea>
+    <br>
+    <button onclick="generateAliases()">Generate Aliases and TOML</button>
+    <h3>Generated Aliases:</h3>
+    <pre id="outputAliases"></pre>
+    <h3>Generated libs.versions.toml:</h3>
+    <pre id="outputToml"></pre>
+    <a id="downloadAliasesLink" style="display:none;">Download Aliases</a>
+    <a id="downloadTomlLink" style="display:none;">Download TOML</a>
+
+    <script>
+        function generateAliases() {
+            const input = document.getElementById("dependencyInput").value;
+            const outputAliases = document.getElementById("outputAliases");
+            const outputToml = document.getElementById("outputToml");
+            const downloadAliasesLink = document.getElementById("downloadAliasesLink");
+            const downloadTomlLink = document.getElementById("downloadTomlLink");
+
+            const lines = input.split('\n');
+            const aliases = [];
+            const tomlEntries = [];
+            const versionEntries = new Set();
+
+            lines
+                .map(line => line.trim())
+                .filter(line => line && !line.startsWith('//'))
+                .forEach(line => {
+                    const match = line.match(/'(.+):(.+):(.+)'/);
+                    if (match) {
+                        const [_, group, name, version] = match;
+                        const alias = `alias(libs.libraries.${group.split('.').join('.')}.${name})`;
+                        aliases.push(alias);
+
+                        // Generate camelCase version key without "com", "version", or any special characters
+                        const cleanedGroup = group
+                            .split('.')
+                            .filter(part => part !== "com" && part !== "version")
+                            .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                            .join('');
+                        const cleanedName = name.charAt(0).toUpperCase() + name.slice(1);
+                        const versionKey = (cleanedGroup + cleanedName).replace(/[-_]/g, '');
+
+                        // Add to TOML entries
+                        tomlEntries.push(`${cleanedGroup}${cleanedName} = { module = "${group}:${name}", version.ref = "${versionKey}" }`);
+                        versionEntries.add(`${versionKey} = "${version}"`);
+                    }
+                });
+
+            // Display Aliases and TOML entries
+            outputAliases.textContent = aliases.join('\n');
+            outputToml.textContent = `[libraries]\n${tomlEntries.join('\n')}\n\n[versions]\n${Array.from(versionEntries).join('\n')}`;
+
+            // Prepare download links
+            const aliasesBlob = new Blob([aliases.join('\n')], { type: 'text/plain' });
+            downloadAliasesLink.href = URL.createObjectURL(aliasesBlob);
+            downloadAliasesLink.download = "aliases.txt";
+            downloadAliasesLink.style.display = 'inline';
+            downloadAliasesLink.textContent = "Download Aliases";
+
+            const tomlBlob = new Blob([`[libraries]\n${tomlEntries.join('\n')}\n\n[versions]\n${Array.from(versionEntries).join('\n')}`], { type: 'text/plain' });
+            downloadTomlLink.href = URL.createObjectURL(tomlBlob);
+            downloadTomlLink.download = "libs.versions.toml";
+            downloadTomlLink.style.display = 'inline';
+            downloadTomlLink.textContent = "Download TOML";
+        }
+    </script>
+</body>
+</html>
